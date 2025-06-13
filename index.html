@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Birthday Puzzle</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Comic Sans MS', cursive;
+            background: linear-gradient(135deg, #ffe6f0, #fff3f9);
+            background-image: url('https://emojicombos.com/wp-content/uploads/2022/01/Birthday-Emojis.png');
+            background-size: contain;
+            background-repeat: repeat;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #popup {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+        }
+
+        #popup button {
+            padding: 12px 24px;
+            font-size: 18px;
+            background: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        h1 {
+            color: #e91e63;
+            text-shadow: 1px 1px #fff;
+            margin-top: 20px;
+        }
+
+        #puzzle {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            width: 90vw;
+            max-width: 360px;
+            margin: 20px auto;
+        }
+
+        .tile {
+            width: 100%;
+            aspect-ratio: 1;
+            background-size: 300% 300%;
+            border: 1px solid white;
+            box-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="popup">
+    <h2>🎁 Selamat Ulang Tahun! 🎉</h2>
+    <p>Selesaikan puzzle untuk membuka hadiah ulang tahun kamu! 🧩💕</p>
+    <button onclick="startGame()">Mulai Sekarang</button>
+</div>
+
+<h1>🧩 Birthday Puzzle 💖</h1>
+<div id="puzzle"></div>
+
+<script>
+    const rows = 3, cols = 3;
+    const imageSrc = 'photo.jpg'; // Replace with your image
+    const redirectLink = 'https://happybirthdayshinta.my.canva.site/'; // Replace with your PDF link
+    let tiles = [];
+    let puzzleContainer = document.getElementById("puzzle");
+
+    function startGame() {
+        document.getElementById("popup").style.display = "none";
+        createPuzzle();
+    }
+
+    function createPuzzle() {
+        puzzleContainer.innerHTML = '';
+        tiles = [];
+
+        // Create correct positions
+        for (let i = 0; i < rows * cols; i++) {
+            tiles.push(i);
+        }
+
+        // Shuffle tiles
+        let shuffled = [...tiles].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach((tileIndex, currentPos) => {
+            const tile = document.createElement("div");
+            tile.classList.add("tile");
+            tile.draggable = true;
+            tile.dataset.correct = tileIndex;
+            tile.dataset.current = currentPos;
+
+            const x = tileIndex % cols;
+            const y = Math.floor(tileIndex / cols);
+
+            tile.style.backgroundImage = `url(${imageSrc})`;
+            tile.style.backgroundPosition = `${(x / (cols - 1)) * 100}% ${(y / (rows - 1)) * 100}%`;
+
+            // Drag Events
+            tile.addEventListener('dragstart', dragStart);
+            tile.addEventListener('dragover', e => e.preventDefault());
+            tile.addEventListener('drop', dragDrop);
+            tile.addEventListener('touchstart', touchStart, { passive: true });
+            tile.addEventListener('touchmove', touchMove, { passive: false });
+            tile.addEventListener('touchend', touchEnd);
+
+            puzzleContainer.appendChild(tile);
+        });
+    }
+
+    let draggedTile = null;
+
+    function dragStart(e) {
+        draggedTile = e.target;
+    }
+
+    function dragDrop(e) {
+        const targetTile = e.target;
+        if (!draggedTile || draggedTile === targetTile) return;
+
+        const draggedIndex = [...puzzleContainer.children].indexOf(draggedTile);
+        const targetIndex = [...puzzleContainer.children].indexOf(targetTile);
+
+        if (draggedIndex >= 0 && targetIndex >= 0) {
+            puzzleContainer.insertBefore(draggedTile, puzzleContainer.children[targetIndex]);
+            puzzleContainer.insertBefore(targetTile, puzzleContainer.children[draggedIndex]);
+        }
+
+        checkSolved();
+    }
+
+    // Touch Support
+    let touchTile = null;
+
+    function touchStart(e) {
+        touchTile = e.target;
+    }
+
+    function touchMove(e) {
+        e.preventDefault(); // Prevent page scroll
+    }
+
+    function touchEnd(e) {
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target && target.classList.contains('tile') && target !== touchTile) {
+            const touchIndex = [...puzzleContainer.children].indexOf(touchTile);
+            const targetIndex = [...puzzleContainer.children].indexOf(target);
+            if (touchIndex >= 0 && targetIndex >= 0) {
+                puzzleContainer.insertBefore(touchTile, puzzleContainer.children[targetIndex]);
+                puzzleContainer.insertBefore(target, puzzleContainer.children[touchIndex]);
+                checkSolved();
+            }
+        }
+    }
+
+    function checkSolved() {
+        const tiles = puzzleContainer.children;
+        for (let i = 0; i < tiles.length; i++) {
+            if (parseInt(tiles[i].dataset.correct) !== i) {
+                return;
+            }
+        }
+
+        // Puzzle complete
+        setTimeout(() => {
+            alert("🎉 Happy Birthday Sayang! 🎂 Kamu berhasil! 💖. " +
+                "\n Password: shintaaa");
+            window.location.href = redirectLink;
+        }, 300);
+    }
+</script>
+
+</body>
+</html>
